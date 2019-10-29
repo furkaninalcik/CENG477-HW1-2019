@@ -103,7 +103,7 @@ void Scene::renderScene(void)
 
     					bool shadowRay_object_intersection = false;
     					float epsilon =  0.0001;
-    					epsilon =  0;
+    					//epsilon =  1000000;
 
 
 					    Vec3f light_position = lights[light_id]->position;
@@ -140,7 +140,6 @@ void Scene::renderScene(void)
 
 
 					        if (shadowRay_intersection_info.intersection){
-					        	std::cout << "Intersected Object ID: " << object_id <<  endl;
 					        	/*
 					            Vec3f point_of_Obstacle =  intersection_info.intersection_point + shadowRay.direction*t_to_object;
 					            Vec3f pointToObstacle = Vec3f(scene.point_lights[0].position) - point_of_Obstacle;
@@ -152,11 +151,30 @@ void Scene::renderScene(void)
 
 					            }
 					            */
-					            if (object_id == 0)
+					            if (object_id == 1)
 					            {
-					            	shadowRay_object_intersection = true;
-					        		break;
+					        		std::cout << "Intersected with sphere: " << object_id <<  endl;
+
+					            	//shadowRay_object_intersection = true;
 					            }
+					            if (object_id < 2)
+					            {
+					        		//std::cout << "Intersected with mesh: " << object_id <<  endl;
+
+					            }
+
+					            Vec3f intersection_point = intersection_info.intersection_point;
+					            Vec3f shadowRay_intersection_point = shadowRay_intersection_info.intersection_point;
+
+					            float light_intersectionPoint_distance    = (light_position - intersection_point).norm();
+					            float intersectionPoint_obstacle_distance = (shadowRay_intersection_point - intersection_point).norm();
+
+					            if (light_intersectionPoint_distance > intersectionPoint_obstacle_distance)
+					            {
+				            		shadowRay_object_intersection = true;
+				        			break;
+					            }
+
 
 
 					        }    

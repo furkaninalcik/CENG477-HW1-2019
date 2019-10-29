@@ -46,7 +46,7 @@ ReturnVal Sphere::intersect(const Ray & ray) const
      ***********************************************
 	 */
 
-    float t = 0;
+    float t;
     ReturnVal intersection_info;
 
     Vec3f e = ray.origin;
@@ -75,6 +75,12 @@ ReturnVal Sphere::intersect(const Ray & ray) const
         t = (x0 < x1) ? x0 : x1;
         //printf("t1 %lf \n", x0 );
         //printf("t2 %lf \n", x1 );
+        if (t < 0)
+        {   
+            std::cout << "Sphere Intersection" << t << endl;
+            std::cout << "Negative T: " << t << endl;
+        }
+
         
         Vec3f pointOnTheSphere  = e + d*t; 
 
@@ -92,6 +98,7 @@ ReturnVal Sphere::intersect(const Ray & ray) const
         intersection_info.intersection_point = intersectionPoint;
         intersection_info.surface_normal = surfaceNormal;
         intersection_info.intersection = true;
+        intersection_info.t = t;
 
         //return true;        
     }
@@ -173,6 +180,13 @@ ReturnVal Triangle::intersect(const Ray & ray) const
 
     p = e + d * t;
 
+
+
+    if (t < 0)
+    {   
+        std::cout << "Triangle Intersection" << t << endl;
+        std::cout << "Negative T: " << t << endl;
+    }
 
 
 
@@ -280,6 +294,8 @@ ReturnVal Triangle::intersect(const Ray & ray) const
         intersection_info.intersection_point = intersectionPoint;
         intersection_info.surface_normal = surfaceNormal;
         intersection_info.intersection = true;
+        intersection_info.t = t;
+
         return intersection_info;
 
     //return true;
@@ -327,29 +343,48 @@ ReturnVal Mesh::intersect(const Ray & ray) const
      ***********************************************
 	 */
 
+    int t_min = 100000.0;
+
     int num_of_faces = faces.size();
 
     ReturnVal intersection_info_array[num_of_faces];
 
     ReturnVal first_intersection_info ;
+    
+    ReturnVal face_intersection_info ;
+    ReturnVal closest_intersection_info ;
 
     //std::cout << faces.size() << endl;
 
 
     for (int i = 0; i < faces.size(); ++i)
-    {
-        first_intersection_info = faces[i].intersect(ray);
+    {    
         //intersection_info_array[i] = faces[i].intersect(ray); //assigning the list of intersection_infos of the faces
+     
+
+        face_intersection_info = faces[i].intersect(ray);
+
+        if (face_intersection_info.intersection && face_intersection_info.t <= t_min)
+        {
+
+            t_min = face_intersection_info.t;
+            closest_intersection_info = face_intersection_info;
+            
+        }
+
+
+        //first_intersection_info = faces[i].intersect(ray);
+        /*
         if(first_intersection_info.intersection){
             break;
         }
-
+        */
 
     }
 
 
     //return intersection_info_array[0]; // returning the first element of the array that is the info about the first face of the mesh
-    return first_intersection_info; // returning the intersection_info of the first intersection without checking if it is the closest face to the camera 
+    return closest_intersection_info; // returning the intersection_info of the first intersection without checking if it is the closest face to the camera 
 
 
 }
