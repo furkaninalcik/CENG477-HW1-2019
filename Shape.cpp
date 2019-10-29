@@ -77,30 +77,35 @@ ReturnVal Sphere::intersect(const Ray & ray) const
         //printf("t2 %lf \n", x1 );
         if (t < 0)
         {   
-            std::cout << "Sphere Intersection" << t << endl;
-            std::cout << "Negative T: " << t << endl;
+            //std::cout << "Sphere Intersection" << t << endl;
+            //std::cout << "Negative T: " << t << endl;
+            
+            intersection_info.intersection = false;
+
+        } else{
+
+            Vec3f pointOnTheSphere  = e + d*t; 
+
+            Vector3f intersectionPoint;
+            intersectionPoint.x = pointOnTheSphere.x; 
+            intersectionPoint.y = pointOnTheSphere.y; 
+            intersectionPoint.z = pointOnTheSphere.z;
+
+            Vector3f surfaceNormal;
+            Vec3f surfaceNormal_Temp = (pointOnTheSphere - center) * (1.0 / r);
+            surfaceNormal.x = surfaceNormal_Temp.x; 
+            surfaceNormal.y = surfaceNormal_Temp.y; 
+            surfaceNormal.z = surfaceNormal_Temp.z;
+
+            intersection_info.intersection_point = intersectionPoint;
+            intersection_info.surface_normal = surfaceNormal;
+            intersection_info.intersection = true;
+            intersection_info.t = t;
+
+            //return true;     
         }
 
-        
-        Vec3f pointOnTheSphere  = e + d*t; 
-
-        Vector3f intersectionPoint;
-        intersectionPoint.x = pointOnTheSphere.x; 
-        intersectionPoint.y = pointOnTheSphere.y; 
-        intersectionPoint.z = pointOnTheSphere.z;
-
-        Vector3f surfaceNormal;
-        Vec3f surfaceNormal_Temp = (pointOnTheSphere - center) * (1.0 / r);
-        surfaceNormal.x = surfaceNormal_Temp.x; 
-        surfaceNormal.y = surfaceNormal_Temp.y; 
-        surfaceNormal.z = surfaceNormal_Temp.z;
-
-        intersection_info.intersection_point = intersectionPoint;
-        intersection_info.surface_normal = surfaceNormal;
-        intersection_info.intersection = true;
-        intersection_info.t = t;
-
-        //return true;        
+   
     }
 
     return intersection_info;
@@ -184,8 +189,10 @@ ReturnVal Triangle::intersect(const Ray & ray) const
 
     if (t < 0)
     {   
-        std::cout << "Triangle Intersection" << t << endl;
-        std::cout << "Negative T: " << t << endl;
+        //std::cout << "Triangle Intersection" << t << endl;
+        //std::cout << "Negative T: " << t << endl;
+        intersection_info.intersection = false;
+        return intersection_info;
     }
 
 

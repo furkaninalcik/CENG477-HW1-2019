@@ -151,17 +151,7 @@ void Scene::renderScene(void)
 
 					            }
 					            */
-					            if (object_id == 1)
-					            {
-					        		std::cout << "Intersected with sphere: " << object_id <<  endl;
 
-					            	//shadowRay_object_intersection = true;
-					            }
-					            if (object_id < 2)
-					            {
-					        		//std::cout << "Intersected with mesh: " << object_id <<  endl;
-
-					            }
 
 					            Vec3f intersection_point = intersection_info.intersection_point;
 					            Vec3f shadowRay_intersection_point = shadowRay_intersection_info.intersection_point;
