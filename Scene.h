@@ -44,9 +44,9 @@ private:
     // Write any other stuff here
 
 
-	Vec3f diffuseShader( int mat_id, Ray ray, Vec3f surface_normal, Vec3f intersection_point);
+	Vec3f diffuseShader( int mat_id, int light_id, Ray ray, Vec3f surface_normal, Vec3f intersection_point);
 	Vec3f ambientShader( int mat_id);
-	Vec3f specularShader(int mat_id, Ray ray, Vec3f surface_normal, Vec3f intersection_point);
+	Vec3f specularShader(int mat_id, int light_id, Ray ray, Vec3f surface_normal, Vec3f intersection_point);
 
 
     //DECLARE intersectionDetector function

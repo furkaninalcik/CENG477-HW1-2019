@@ -90,11 +90,22 @@ void Scene::renderScene(void)
     			intersection_info = objects[k]->intersect(primaryRay);
 
     			if(intersection_info.intersection){
-
+    				
     				int mat_id = objects[k]->matIndex;
-    				Vec3f diffuse  =  diffuseShader(mat_id,  primaryRay, intersection_info.surface_normal, intersection_info.intersection_point);
+    				
     				Vec3f ambient  =  ambientShader(mat_id);
-    				Vec3f specular = specularShader(mat_id, primaryRay, intersection_info.surface_normal, intersection_info.intersection_point);
+
+    				Vec3f diffuse  = Vec3f(0,0,0);
+    				Vec3f specular = Vec3f(0,0,0);
+
+    				for (int light_id = 0; light_id < lights.size(); ++light_id)
+    				{
+    					diffuse  = diffuse  + diffuseShader(mat_id, light_id, primaryRay, intersection_info.surface_normal, intersection_info.intersection_point);
+    					specular = specular + specularShader(mat_id, light_id, primaryRay, intersection_info.surface_normal, intersection_info.intersection_point);
+
+    				}
+
+
 
     				Vec3f clamp_vector; 
     				Vec3f clamped_shade = clamp_vector.clamp(ambient + diffuse + specular);
@@ -134,10 +145,10 @@ void Scene::renderScene(void)
 }
 
 
-Vec3f Scene::diffuseShader(int mat_id, Ray ray, Vec3f surface_normal, Vec3f intersection_point){
+Vec3f Scene::diffuseShader(int mat_id, int light_id, Ray ray, Vec3f surface_normal, Vec3f intersection_point){
 
 
-	Vec3f light_position = lights[0]->position;
+	Vec3f light_position = lights[light_id]->position;
 
 	Vec3f vectorToLight = light_position - intersection_point;
 
@@ -174,7 +185,7 @@ Vec3f Scene::diffuseShader(int mat_id, Ray ray, Vec3f surface_normal, Vec3f inte
 
     }
 */
-    Vec3f irradiance = lights[0]->computeLightContribution(intersection_point_vector3f);
+    Vec3f irradiance = lights[light_id]->computeLightContribution(intersection_point_vector3f);
 
     float diffuseShadingRed   = diffuseShadingParams.x * cosTheta * irradiance.x; 
     float diffuseShadingGreen = diffuseShadingParams.y * cosTheta * irradiance.y; 
@@ -207,10 +218,10 @@ Vec3f Scene::ambientShader(int mat_id){
     //////////////////////////////////// AMBIENT SHADING
 }
 
-Vec3f Scene::specularShader(int mat_id, Ray ray, Vec3f surface_normal, Vec3f intersection_point){
+Vec3f Scene::specularShader(int mat_id, int light_id, Ray ray, Vec3f surface_normal, Vec3f intersection_point){
 
 
-	Vec3f light_position = lights[0]->position;
+	Vec3f light_position = lights[light_id]->position;
 
 	Vec3f vectorToLight = light_position - intersection_point;
 
@@ -234,7 +245,7 @@ Vec3f Scene::specularShader(int mat_id, Ray ray, Vec3f surface_normal, Vec3f int
     intersection_point_vector3f.y = intersection_point.y; 
     intersection_point_vector3f.z = intersection_point.z; 
 
-    Vec3f irradiance = lights[0]->computeLightContribution(intersection_point_vector3f);
+    Vec3f irradiance = lights[light_id]->computeLightContribution(intersection_point_vector3f);
 
 
     float specularShadingRed   = specularShadingParams.x * cosAlphaWithPhong * irradiance.x; 
