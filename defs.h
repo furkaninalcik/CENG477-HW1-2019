@@ -48,7 +48,9 @@ typedef struct ReturnVal
 	bool intersection = false;
 	Vector3f intersection_point;
 	Vector3f surface_normal;
-	//int mat_id;
+	float t;// r(t) = e + t*d ||| If intersection is true then this variable will be used to compare different objects and decide which one will be rendered. 
+			//Also it will be used to decide if shadow ray intersects object before reaching the point light  
+
 	
 
 

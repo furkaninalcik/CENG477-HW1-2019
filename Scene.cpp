@@ -100,8 +100,75 @@ void Scene::renderScene(void)
 
     				for (int light_id = 0; light_id < lights.size(); ++light_id)
     				{
-    					diffuse  = diffuse  + diffuseShader(mat_id, light_id, primaryRay, intersection_info.surface_normal, intersection_info.intersection_point);
-    					specular = specular + specularShader(mat_id, light_id, primaryRay, intersection_info.surface_normal, intersection_info.intersection_point);
+
+    					bool shadowRay_object_intersection = false;
+    					float epsilon =  0.0001;
+    					epsilon =  0;
+
+
+					    Vec3f light_position = lights[light_id]->position;
+
+
+				    	Vec3f intersection_point_to_light = (light_position - intersection_info.intersection_point).normalize();
+
+				    	Vector3f shadowRay_origin, shadowRay_direction;
+
+				    	shadowRay_origin.x = intersection_info.intersection_point.x + intersection_point_to_light.x * epsilon;
+				    	shadowRay_origin.y = intersection_info.intersection_point.y + intersection_point_to_light.y * epsilon;
+				    	shadowRay_origin.z = intersection_info.intersection_point.z + intersection_point_to_light.z * epsilon;
+
+				    	shadowRay_direction.x = intersection_point_to_light.x;
+				    	shadowRay_direction.y = intersection_point_to_light.y;
+				    	shadowRay_direction.z = intersection_point_to_light.z;
+
+				        
+				        Ray shadowRay = Ray(shadowRay_origin, shadowRay_direction );
+
+
+				        float t_to_object;
+
+				        ReturnVal shadowRay_intersection_info;
+
+
+
+					    for (int object_id = 0; object_id < objects.size(); ++object_id)
+					    {
+					        
+
+
+					        shadowRay_intersection_info = objects[object_id]->intersect(shadowRay);
+
+
+					        if (shadowRay_intersection_info.intersection){
+					        	std::cout << "Intersected Object ID: " << object_id <<  endl;
+					        	/*
+					            Vec3f point_of_Obstacle =  intersection_info.intersection_point + shadowRay.direction*t_to_object;
+					            Vec3f pointToObstacle = Vec3f(scene.point_lights[0].position) - point_of_Obstacle;
+
+
+					            if (sqrt(dotProduct(pointToObstacle,pointToObstacle)) < lightDistance)
+					            {
+					                return true;
+
+					            }
+					            */
+					            if (object_id == 0)
+					            {
+					            	shadowRay_object_intersection = true;
+					        		break;
+					            }
+
+
+					        }    
+					    }
+					    if (!shadowRay_object_intersection)
+					    {
+    						diffuse  = diffuse  + diffuseShader(mat_id, light_id, primaryRay, intersection_info.surface_normal, intersection_info.intersection_point);
+    						specular = specular + specularShader(mat_id, light_id, primaryRay, intersection_info.surface_normal, intersection_info.intersection_point);
+
+					    }
+
+
 
     				}
 
