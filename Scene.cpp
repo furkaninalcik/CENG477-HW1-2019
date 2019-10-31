@@ -36,7 +36,8 @@ void Scene::renderScene(void)
 
     Image* img = new Image(width,height);
 
-    int recursionTracker = 0;
+    int recursionTracker = maxRecursionDepth;
+    //recursionTracker = 2;
 
     std::cout << width << endl;
     std::cout << height << endl; 
@@ -75,7 +76,7 @@ Vec3f Scene::shade(Ray primaryRay, int recursionTracker){
 	ReturnVal intersection_info;
 	intersection_info.intersection=false;
 
-
+	bool no_intersection = true;
 	for (int k = 0; k < objects.size(); ++k)
 	{
 
@@ -83,6 +84,7 @@ Vec3f Scene::shade(Ray primaryRay, int recursionTracker){
 		intersection_info = objects[k]->intersect(primaryRay);
 
 		if(intersection_info.intersection){
+			no_intersection = false;
 			
 			int mat_id = objects[k]->matIndex;
 			
@@ -163,13 +165,21 @@ Vec3f Scene::shade(Ray primaryRay, int recursionTracker){
 			}
 
 
-			
+
 		    
 
 			if (recursionTracker > 0)
 			{
 				Ray ReflectanceRay = mirrorReflectanceRay(primaryRay,intersection_info );
 				mirror = shade(ReflectanceRay, recursionTracker );
+
+				//mirror = Vec3f(100,100,100);
+				/*
+				std::cout << "ID:" << objects[k]->matIndex-1 << endl;
+				std::cout << "mirrorRef x: " << materials[objects[k]->matIndex-1]->mirrorRef.x << endl;
+				std::cout << "mirrorRef y: " << materials[objects[k]->matIndex-1]->mirrorRef.y << endl;
+				std::cout << "mirrorRef z: " << materials[objects[k]->matIndex-1]->mirrorRef.z << endl;
+				*/
 
 			    Vec3f mirrorShadingParams = materials[objects[k]->matIndex-1]->mirrorRef; // for RGB values -> between 0 and 1
 
@@ -189,7 +199,7 @@ Vec3f Scene::shade(Ray primaryRay, int recursionTracker){
 
 
 			Vec3f clamp_vector; 
-			Vec3f clamped_shade = clamp_vector.clamp(ambient + diffuse + specular);
+			Vec3f clamped_shade = clamp_vector.clamp(ambient + diffuse + specular + mirror);
 
 			return {clamped_shade.x,clamped_shade.y,clamped_shade.z};
 
@@ -201,15 +211,23 @@ Vec3f Scene::shade(Ray primaryRay, int recursionTracker){
 			break;
 		}
 
+
 	}
+	if (no_intersection)
+	{
+		return {backgroundColor.x, backgroundColor.y, backgroundColor.z};
+		//return {10, 10, 100};
+	}
+
+
 }
 
 Ray Scene::mirrorReflectanceRay(Ray primaryRay, ReturnVal intersection_info){
 	
 	Vec3f incomingRayDirection, surfaceNormal;
 	
-	incomingRayDirection = Vec3f(primaryRay.direction.x, primaryRay.direction.y, primaryRay.direction.z );
-	surfaceNormal = Vec3f(intersection_info.surface_normal.x, intersection_info.surface_normal.y, intersection_info.surface_normal.z);
+	incomingRayDirection = Vec3f(primaryRay.direction.x, primaryRay.direction.y, primaryRay.direction.z ).normalize();
+	surfaceNormal = Vec3f(intersection_info.surface_normal.x, intersection_info.surface_normal.y, intersection_info.surface_normal.z).normalize();
 
 	Vec3f outGoingRayDirection  = incomingRayDirection + (surfaceNormal*(2*(surfaceNormal).dotProduct((-incomingRayDirection))));
 
