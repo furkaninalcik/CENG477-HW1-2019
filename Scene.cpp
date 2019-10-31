@@ -36,30 +36,10 @@ void Scene::renderScene(void)
 
     Image* img = new Image(width,height);
 
-
-
+    int recursionTracker = 0;
 
     std::cout << width << endl;
     std::cout << height << endl; 
-
-
-    //Sphere s = Sphere(1, 1, 8, 0.3, &vertices);	// Constructor
-
-	//Triangle t = Triangle(1, 1, 5, 6, 7, &vertices);	// Constructor
-
-	//Mesh m = Mesh(1, 1, 5, 6, 7, &vertices);	// Constructor
-
-
-	//Mesh(int id, int matIndex, const vector<Triangle>& faces, vector<int> *pIndices, vector<Vector3f> *vertices);	// Constructor
-
-
-
-
-    //Ray primaryRay_Test = cameras[0]->getPrimaryRay(10,78);
-
-    //std::cout << primaryRay_Test.origin.x << ", " << primaryRay_Test.origin.y << ", " << primaryRay_Test.origin.z << ", " << endl; 
-    //std::cout << primaryRay_Test.direction.x << ", " << primaryRay_Test.direction.y << ", " << primaryRay_Test.direction.z << ", " << endl; 
-
 
 
     for (int i = 0; i < width; ++i)
@@ -71,143 +51,11 @@ void Scene::renderScene(void)
 
     		Ray primaryRay = cameras[0]->getPrimaryRay(i,j);
 
+    		Vec3f final_shade = shade(primaryRay, recursionTracker);
 
-
-    		//vector<Vector3f> *vertices = vertices;
-
-			//std::cout << objects.size()  << std::endl;
-
-
-			ReturnVal intersection_info;
-			intersection_info.intersection=false;
-
-
-    		for (int k = 0; k < objects.size(); ++k)
-    		{
-				//std::cout << "id" << objects[2]->id  << std::endl;
-				//std::cout << "mat_index" << objects[2]->matIndex  << std::endl;
-
-    			intersection_info = objects[k]->intersect(primaryRay);
-
-    			if(intersection_info.intersection){
-    				
-    				int mat_id = objects[k]->matIndex;
-    				
-    				Vec3f ambient  =  ambientShader(mat_id);
-
-    				Vec3f diffuse  = Vec3f(0,0,0);
-    				Vec3f specular = Vec3f(0,0,0);
-
-    				for (int light_id = 0; light_id < lights.size(); ++light_id)
-    				{
-
-    					bool shadowRay_object_intersection = false;
-    					float epsilon =  0.0001;
-    					//epsilon =  1000000;
-
-
-					    Vec3f light_position = lights[light_id]->position;
-
-
-				    	Vec3f intersection_point_to_light = (light_position - intersection_info.intersection_point).normalize();
-
-				    	Vector3f shadowRay_origin, shadowRay_direction;
-
-				    	shadowRay_origin.x = intersection_info.intersection_point.x + intersection_point_to_light.x * epsilon;
-				    	shadowRay_origin.y = intersection_info.intersection_point.y + intersection_point_to_light.y * epsilon;
-				    	shadowRay_origin.z = intersection_info.intersection_point.z + intersection_point_to_light.z * epsilon;
-
-				    	shadowRay_direction.x = intersection_point_to_light.x;
-				    	shadowRay_direction.y = intersection_point_to_light.y;
-				    	shadowRay_direction.z = intersection_point_to_light.z;
-
-				        
-				        Ray shadowRay = Ray(shadowRay_origin, shadowRay_direction );
-
-
-				        float t_to_object;
-
-				        ReturnVal shadowRay_intersection_info;
-
-
-
-					    for (int object_id = 0; object_id < objects.size(); ++object_id)
-					    {
-					        
-
-
-					        shadowRay_intersection_info = objects[object_id]->intersect(shadowRay);
-
-
-					        if (shadowRay_intersection_info.intersection){
-					        	/*
-					            Vec3f point_of_Obstacle =  intersection_info.intersection_point + shadowRay.direction*t_to_object;
-					            Vec3f pointToObstacle = Vec3f(scene.point_lights[0].position) - point_of_Obstacle;
-
-
-					            if (sqrt(dotProduct(pointToObstacle,pointToObstacle)) < lightDistance)
-					            {
-					                return true;
-
-					            }
-					            */
-
-
-					            Vec3f intersection_point = intersection_info.intersection_point;
-					            Vec3f shadowRay_intersection_point = shadowRay_intersection_info.intersection_point;
-
-					            float light_intersectionPoint_distance    = (light_position - intersection_point).norm();
-					            float intersectionPoint_obstacle_distance = (shadowRay_intersection_point - intersection_point).norm();
-
-					            if (light_intersectionPoint_distance > intersectionPoint_obstacle_distance)
-					            {
-				            		shadowRay_object_intersection = true;
-				        			break;
-					            }
-
-
-
-					        }    
-					    }
-					    if (!shadowRay_object_intersection)
-					    {
-    						diffuse  = diffuse  + diffuseShader(mat_id, light_id, primaryRay, intersection_info.surface_normal, intersection_info.intersection_point);
-    						specular = specular + specularShader(mat_id, light_id, primaryRay, intersection_info.surface_normal, intersection_info.intersection_point);
-
-					    }
-
-
-
-    				}
-
-
-
-    				Vec3f clamp_vector; 
-    				Vec3f clamped_shade = clamp_vector.clamp(ambient + diffuse + specular);
-
-    				img->setPixelValue(j,i,{clamped_shade.x,clamped_shade.y,clamped_shade.z});
-    				//img->setPixelValue(j,i,{200,200,200});
-    				
-
-
-    				break;
-    			}
-
-    		}
+			img->setPixelValue(j,i,{final_shade.x,final_shade.y,final_shade.z});
 			
-/*
-    		ReturnVal intersection_info_sphere = s.intersect(primaryRay);
-    		ReturnVal intersection_info_triangle = t.intersect(primaryRay);
-    		ReturnVal intersection_info_mesh = m.intersect(primaryRay);
-    		if (intersection_info_mesh.intersection || intersection_info_triangle.intersection || intersection_info_sphere.intersection )
-    		{
-    		}
-
-*/
-
-
-
-    			
+   			
     	}
     }
     
@@ -215,6 +63,165 @@ void Scene::renderScene(void)
 
 
  	img->saveImage(filename);
+
+
+}
+
+
+Vec3f Scene::shade(Ray primaryRay, int recursionTracker){
+
+	recursionTracker -= 1;
+
+	ReturnVal intersection_info;
+	intersection_info.intersection=false;
+
+
+	for (int k = 0; k < objects.size(); ++k)
+	{
+
+
+		intersection_info = objects[k]->intersect(primaryRay);
+
+		if(intersection_info.intersection){
+			
+			int mat_id = objects[k]->matIndex;
+			
+			Vec3f ambient  =  ambientShader(mat_id);
+
+			Vec3f diffuse  = Vec3f(0,0,0);
+			Vec3f specular = Vec3f(0,0,0);
+			Vec3f mirror   = Vec3f(0,0,0);
+
+			for (int light_id = 0; light_id < lights.size(); ++light_id)
+			{
+
+				bool shadowRay_object_intersection = false;
+				float epsilon =  0.0001;
+				//epsilon =  1000000;
+
+
+			    Vec3f light_position = lights[light_id]->position;
+
+
+		    	Vec3f intersection_point_to_light = (light_position - intersection_info.intersection_point).normalize();
+
+		    	Vector3f shadowRay_origin, shadowRay_direction;
+
+		    	shadowRay_origin.x = intersection_info.intersection_point.x + intersection_point_to_light.x * epsilon;
+		    	shadowRay_origin.y = intersection_info.intersection_point.y + intersection_point_to_light.y * epsilon;
+		    	shadowRay_origin.z = intersection_info.intersection_point.z + intersection_point_to_light.z * epsilon;
+
+		    	shadowRay_direction.x = intersection_point_to_light.x;
+		    	shadowRay_direction.y = intersection_point_to_light.y;
+		    	shadowRay_direction.z = intersection_point_to_light.z;
+
+		        
+		        Ray shadowRay = Ray(shadowRay_origin, shadowRay_direction );
+
+
+		        float t_to_object;
+
+		        ReturnVal shadowRay_intersection_info;
+
+
+
+			    for (int object_id = 0; object_id < objects.size(); ++object_id)
+			    {
+			        
+
+
+			        shadowRay_intersection_info = objects[object_id]->intersect(shadowRay);
+
+
+			        if (shadowRay_intersection_info.intersection){
+
+			            Vec3f intersection_point = intersection_info.intersection_point;
+			            Vec3f shadowRay_intersection_point = shadowRay_intersection_info.intersection_point;
+
+			            float light_intersectionPoint_distance    = (light_position - intersection_point).norm();
+			            float intersectionPoint_obstacle_distance = (shadowRay_intersection_point - intersection_point).norm();
+
+			            if (light_intersectionPoint_distance > intersectionPoint_obstacle_distance)
+			            {
+		            		shadowRay_object_intersection = true;
+		        			break;
+			            }
+
+
+
+			        }    
+			    }
+			    if (!shadowRay_object_intersection)
+			    {
+					diffuse  = diffuse  + diffuseShader(mat_id, light_id, primaryRay, intersection_info.surface_normal, intersection_info.intersection_point);
+					specular = specular + specularShader(mat_id, light_id, primaryRay, intersection_info.surface_normal, intersection_info.intersection_point);
+
+				}
+
+
+
+			}
+
+
+			
+		    
+
+			if (recursionTracker > 0)
+			{
+				Ray ReflectanceRay = mirrorReflectanceRay(primaryRay,intersection_info );
+				mirror = shade(ReflectanceRay, recursionTracker );
+
+			    Vec3f mirrorShadingParams = materials[objects[k]->matIndex-1]->mirrorRef; // for RGB values -> between 0 and 1
+
+
+			    float mirrorShadingRed   = mirrorShadingParams.x * mirror.x; 
+			    float mirrorShadingGreen = mirrorShadingParams.y * mirror.y; 
+			    float mirrorShadingBlue  = mirrorShadingParams.z * mirror.z; 
+			    mirror = Vec3f(mirrorShadingRed, mirrorShadingGreen, mirrorShadingBlue);
+
+
+			}
+
+
+
+			
+
+
+
+			Vec3f clamp_vector; 
+			Vec3f clamped_shade = clamp_vector.clamp(ambient + diffuse + specular);
+
+			return {clamped_shade.x,clamped_shade.y,clamped_shade.z};
+
+			//img->setPixelValue(j,i,{clamped_shade.x,clamped_shade.y,clamped_shade.z});
+			//img->setPixelValue(j,i,{200,200,200});
+			
+
+
+			break;
+		}
+
+	}
+}
+
+Ray Scene::mirrorReflectanceRay(Ray primaryRay, ReturnVal intersection_info){
+	
+	Vec3f incomingRayDirection, surfaceNormal;
+	
+	incomingRayDirection = Vec3f(primaryRay.direction.x, primaryRay.direction.y, primaryRay.direction.z );
+	surfaceNormal = Vec3f(intersection_info.surface_normal.x, intersection_info.surface_normal.y, intersection_info.surface_normal.z);
+
+	Vec3f outGoingRayDirection  = incomingRayDirection + (surfaceNormal*(2*(surfaceNormal).dotProduct((-incomingRayDirection))));
+
+	Vector3f direction;
+	direction.x = outGoingRayDirection.x;
+	direction.y = outGoingRayDirection.y;
+	direction.z = outGoingRayDirection.z;
+
+	Ray outGoingRay =  Ray(intersection_info.intersection_point,direction);
+
+
+	return outGoingRay;
 
 
 }
