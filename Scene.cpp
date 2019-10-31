@@ -23,48 +23,51 @@ void Scene::renderScene(void)
      *                                             *
      ***********************************************
 	 */
+	char* filename;
+	unsigned char* image;
+	Image* img;
+	int recursionTracker = maxRecursionDepth;
+	
+	for (int camera_id = 0; camera_id < cameras.size(); ++camera_id)
+	{
+		filename =  cameras[camera_id]->imageName;
+		int width = cameras[camera_id]->imgPlane.nx;
+		int height = cameras[camera_id]->imgPlane.ny;
 
-	const char* filename =  cameras[0]->imageName;
-	//std::cout << filename << std::endl;
-	//std::cout << cameras[0]->id << std::endl;
+		image = new unsigned char [width * height * 3];    
 
-    int width = cameras[0]->imgPlane.nx;
-    int height = cameras[0]->imgPlane.ny;
-    const int numOfImages = cameras.size();
-    
-    unsigned char* image = new unsigned char [width * height * 3];    
-
-    Image* img = new Image(width,height);
-
-    int recursionTracker = maxRecursionDepth;
-    //recursionTracker = 2;
-
-    std::cout << width << endl;
-    std::cout << height << endl; 
+		img = new Image(width,height);
 
 
-    for (int i = 0; i < width; ++i)
-    {
-    	for (int j = 0; j < height; ++j)
-    	{
-    		
+		//recursionTracker = 2;
+
+		std::cout << width << endl;
+		std::cout << height << endl; 
 
 
-    		Ray primaryRay = cameras[0]->getPrimaryRay(i,j);
-
-    		Vec3f final_shade = shade(primaryRay, recursionTracker);
-
-			img->setPixelValue(j,i,{final_shade.x,final_shade.y,final_shade.z});
-			
-   			
-    	}
-    }
-    
+		for (int i = 0; i < width; ++i)
+		{
+			for (int j = 0; j < height; ++j)
+			{
+				
 
 
+				Ray primaryRay = cameras[camera_id]->getPrimaryRay(i,j);
 
- 	img->saveImage(filename);
+				Vec3f final_shade = shade(primaryRay, recursionTracker);
 
+				img->setPixelValue(j,i,{final_shade.x,final_shade.y,final_shade.z});
+				
+					
+			}
+		}
+
+
+
+
+		img->saveImage(filename);
+
+	}
 
 }
 
