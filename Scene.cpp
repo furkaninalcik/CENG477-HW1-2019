@@ -219,6 +219,49 @@ void Scene::renderScene(void)
 
 }
 
+Vec3f Scene::mirrorShader(){
+        /*
+    if (mirrorShadingParams.x != 0 || mirrorShadingParams.y != 0 || mirrorShadingParams.z != 0 )
+    {
+        printf("MIRROR\n");
+
+        float t1,t2,t3;
+
+        sphereSurfaceNormal = sphereSurfaceNormal.normalize();
+
+        eyeRay.d = eyeRay.d.normalize();
+
+        Vec3f mirrorReflactanceRayDirection  = eyeRay.d + (sphereSurfaceNormal*(2*dotProduct(sphereSurfaceNormal,(-eyeRay.d)))) ;
+
+        Ray mirrorReflactanceRay = Ray(pointOnTheSphere, mirrorReflactanceRayDirection );
+
+
+        bool sphereIntersection = false;
+        bool triangleIntersection = false;
+        bool faceIntersection = false;
+
+
+        Vec3f surfaceNormal; // "intersection" function will assign this variable 
+
+
+        Vec3f sphereShade   = sphereShading(scene, eyeRay, t1,  lightPosition, lightIntensity,  spheres, image, sphereIntersection, index);
+
+
+        Vec3f triangleShade = triangleShading(scene, eyeRay, t2,  lightPosition, lightIntensity,  scene.triangles, image, sphereIntersection, triangleIntersection, index, surfaceNormal);
+        
+
+        Vec3f faceShade   =  faceShading(scene, eyeRay, t3,  lightPosition, lightIntensity,  scene.meshes, image, sphereIntersection, triangleIntersection, faceIntersection, index, surfaceNormal);
+
+
+    }
+
+
+    */
+}
+
+
+
+
 
 Vec3f Scene::diffuseShader(int mat_id, int light_id, Ray ray, Vec3f surface_normal, Vec3f intersection_point){
 
